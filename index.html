@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rute Antaran</title>
+  <style>
+    body { font-family: sans-serif; margin: 0; padding: 0; }
+    .container { padding: 1rem; }
+    #map { height: 80vh; width: 100%; }
+    input, button {
+      width: 100%; padding: 1rem; margin: 0.5rem 0;
+      font-size: 1rem; border: none; border-radius: 5px;
+    }
+    button {
+      background-color: #007bff; color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>📦 Rute Pengantaran</h2>
+    <input type="file" id="uploadExcel" accept=".csv" />
+    <button onclick="lihatRute()">Lihat Rute</button>
+  </div>
+  <div id="map"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB6bVUW-YgCSvTsnUBjfaU06aXIW4QgfXA"></script>
+  <script>
+    let waypoints = [];
+
+    document.getElementById('uploadExcel').addEventListener('change', function(e) {
+      Papa.parse(e.target.files[0], {
+        header: true,
+        complete: function(results) {
+          waypoints = results.data
+            .filter(row => row.Alamat)
+            .map(d => ({
+              location: d.Alamat,
+              stopover: true
+            }));
+        }
+      });
+    });
+
+    function lihatRute() {
+      const map = new google.maps.Map(document.getElementById('map'), {
+        center: { lat: -6.2, lng: 106.8 },
+        zoom: 12,
+      });
+
+      const directionsService = new google.maps.DirectionsService();
+      const directionsRenderer = new google.maps.DirectionsRenderer();
+      directionsRenderer.setMap(map);
+
+      directionsService.route({
+        origin: 'Kantor Pos Jakarta Timur',
+        destination: waypoints.length > 0 ? waypoints[waypoints.length - 1].location : '',
+        waypoints: waypoints.slice(0, -1),
+        travelMode: 'DRIVING',
+        optimizeWaypoints: true,
+      }, function(result, status) {
+        if (status === 'OK') {
+          directionsRenderer.setDirections(result);
+        } else {
+          alert('Gagal buat rute: ' + status);
+        }
+      });
+    }
+  </script>
+</body>
+</html>
