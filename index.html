@@ -26,12 +26,7 @@
   <div id="map"></div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
-
-<script
-  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDcfdPn-z3XiYMMhQgV-Gbop4N6MCTZ0HI&callback=initMap" asyncdefer>
-</script>
-
-  
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDcfdPn-z3XiYMMhQgV-Gbop4N6MCTZ0HI"></script>
   <script>
     let waypoints = [];
 
@@ -40,16 +35,23 @@
         header: true,
         complete: function(results) {
           waypoints = results.data
-            .filter(row => row.Alamat)
-            .map(d => ({
-              location: d.Alamat,
-              stopover: true
-            }));
+            .filter(row => row['Alamat'])
+            .map(d => {
+              return {
+                location: d['Alamat'],
+                stopover: true
+              };
+            });
         }
       });
     });
 
     function lihatRute() {
+      if (waypoints.length === 0) {
+        alert('Tidak ada alamat yang dimuat.');
+        return;
+      }
+
       const map = new google.maps.Map(document.getElementById('map'), {
         center: { lat: -6.2, lng: 106.8 },
         zoom: 12,
@@ -61,7 +63,7 @@
 
       directionsService.route({
         origin: 'Kantor Pos Jakarta Timur',
-        destination: waypoints.length > 0 ? waypoints[waypoints.length - 1].location : '',
+        destination: waypoints[waypoints.length - 1].location,
         waypoints: waypoints.slice(0, -1),
         travelMode: 'DRIVING',
         optimizeWaypoints: true,
